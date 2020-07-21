@@ -1,0 +1,7 @@
+name: sra_search
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - snakemake-minimal=5.20.1
