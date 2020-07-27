@@ -1,3 +1,7 @@
-query_name: TOBG_SAT-148
-query_sig: /home/irber/tully/outputs/sigs/TOBG_SAT-148.fna.sig
+query_name: tully_mags
+query_sigs:
+- /home/irber/tully/outputs/sigs/TOBG_SAT-148.fna.sig
 wort_sigs: /group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs
+s3_dir: outputs/wort-sra/sigs
+threshold: 0.01
+ksize: 31
