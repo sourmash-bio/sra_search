@@ -18,7 +18,7 @@ rule catalog_metagenomes:
 
     sraids = set(Path("inputs/mash_sraids.txt").read_text().split('\n'))
 
-    with open("inputs/metagenomes_source-20200821.csv") as fp:
+    with open("inputs/metagenomes_source-20200708.csv") as fp:
       data = csv.DictReader(fp, delimiter=',')
       for dataset in data:
         sraids.add(dataset['Run'])
@@ -33,7 +33,7 @@ rule catalog_metagenomes:
 rule build_rust_bin:
   output: "bin/sra_search",
   conda: "env/rust.yml"
-  shell: "cargo install --git https://github.com/luizirber/phd.git --rev 455f613 sra_search --root ."
+  shell: "cargo install --git https://github.com/luizirber/phd.git --rev 600dee0d812189abb6521b1c7f4f7c0a29b8fdf6 sra_search --root ."
 
 rule search:
   output: f"outputs/results/{config['query_name']}.csv"
@@ -47,7 +47,9 @@ rule search:
   threads: 32
   shell: """
     export RAYON_NUM_THREADS={threads}
+    set +e
     {input.bin} --threshold {params.threshold} -k {params.ksize} -o {output} {input.queries} {input.catalog}
+    exit 0
   """
 
 rule download_signatures_from_wort:

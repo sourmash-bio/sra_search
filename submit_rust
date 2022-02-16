@@ -17,7 +17,7 @@ set -o nounset
 set -o errexit
 set -x
 
-snakemake -j 32
+snakemake -j 32 --use-conda -p
 
 echo ${SLURM_JOB_NODELIST}       # Output Contents of the SLURM NODELIST
 
