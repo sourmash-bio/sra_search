@@ -1,6 +1,8 @@
-query_name: adrian_outbreak
+query_name: test
 query_sigs: inputs/adrian_sigs
-wort_sigs: /group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs
-s3_dir: outputs/wort-sra/sigs
+sources: "inputs/metagenomes_source-20220219.csv"
+#sources: "inputs/metagenomes_source-20200708.csv"
+wort_sigs: inputs/sigs
+#wort_sigs: /data/wort/wort-sra/sigs/
 threshold: 0.01
 ksize: 31
