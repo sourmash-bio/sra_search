@@ -13,7 +13,7 @@ use sourmash::sketch::Sketch;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
-    /// List of queries (one sig per file)
+    /// List of queries (one sig path per line in the file)
     #[clap(parse(from_os_str))]
     querylist: PathBuf,
 

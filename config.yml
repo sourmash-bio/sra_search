@@ -1,8 +1,9 @@
 query_name: test
-query_sigs: inputs/adrian_sigs
-sources: "inputs/metagenomes_source-20220219.csv"
+query_sigs: inputs/test_sigs
+sources: "inputs/metagenomes_source-20220221.csv"
 #sources: "inputs/metagenomes_source-20200708.csv"
 wort_sigs: inputs/sigs
 #wort_sigs: /data/wort/wort-sra/sigs/
 threshold: 0.01
 ksize: 31
+max_downloaders: 10
