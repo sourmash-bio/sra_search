@@ -7,3 +7,4 @@ wort_sigs: inputs/sigs
 threshold: 0.01
 ksize: 31
 max_downloaders: 10
+skip_download: true
