@@ -106,20 +106,21 @@ rule catalog:
       return results
 
     # TODO: deal with errors
-    results = asyncio.run(collect())
-    print(f"step 3: {len(results)}")
-    for result in results:
-      if result is None:
-        # Couldn't find a sig in wort, just skip
-        pass
-      elif isinstance(result, BaseException):
-        # catch-all exception for now, need to figure out what to do
-        # probably retry?
-        print(f"exception: {result}")
-        raise result
-      elif isinstance(result, str):
-        # valid path!
-        sig_paths.add(sig_path)
+    if not config['skip_download']:
+      results = asyncio.run(collect())
+      print(f"step 3: {len(results)}")
+      for result in results:
+        if result is None:
+          # Couldn't find a sig in wort, just skip
+          pass
+        elif isinstance(result, BaseException):
+          # catch-all exception for now, need to figure out what to do
+          # probably retry?
+          print(f"exception: {result}")
+          raise result
+        elif isinstance(result, str):
+          # valid path!
+          sig_paths.add(sig_path)
 
     ##################################
     # step 4: prepare catalog
@@ -134,6 +135,39 @@ rule catalog:
 #  - Compile the searcher (a rust binary)
 #  - Execute the searcher
 #########################################################
+rule cache_sigs:
+  output:
+    cache_dir=directory(f"outputs/cache/")
+  input:
+    catalog=f"outputs/catalogs/{os.path.basename(config['sources'])}",
+    bin = "bin/searcher"
+  params:
+    ksize = config.get("ksize", 31)
+  threads: 32
+  shell: """
+      export RAYON_NUM_THREADS={threads}
+      set +e
+      {input.bin} prepare -k {params.ksize} -o {output.cache_dir} {input.catalog}
+      exit 0
+    """
+
+rule cache_catalog:
+  output:
+    cache_catalog=f"outputs/cache_catalogs/{os.path.basename(config['sources'])}",
+  input:
+    catalog=f"outputs/catalogs/{os.path.basename(config['sources'])}",
+    cache_dir=directory(f"outputs/cache/")
+  run:
+    cache_sig_paths = {}
+    for cache_sig in Path(input.cache_dir).glob("*.sig"):
+      cache_sig_paths[cache_sig.name] = cache_sig
+
+    with open(input.catalog) as inp:
+      with open(output.cache_catalog, 'w') as fout:
+        for sig_path in inp:
+          sig_path = Path(sig_path.strip())
+          fout.write(f"{cache_sig_paths[sig_path.name]}\n")
+
 
 rule build_rust_bin:
   output: "bin/searcher",
@@ -145,15 +179,19 @@ rule search:
   input:
     queries = config["query_sigs"],
     catalog = f"outputs/catalogs/{os.path.basename(config['sources'])}",
+    cache_catalog = f"outputs/cache_catalogs/{os.path.basename(config['sources'])}",
     bin = "bin/searcher"
   params:
     threshold = config.get("threshold", 0.01),
     ksize = config.get("ksize", 31)
   threads: 32
+  benchmark: "benchmarks/search"
   shell: """
     export RAYON_NUM_THREADS={threads}
     set +e
-    {input.bin} --threshold {params.threshold} -k {params.ksize} -o {output} {input.queries} {input.catalog}
+    {input.bin} search --threshold {params.threshold} \
+      -k {params.ksize} -o {output} \
+      {input.queries} {input.catalog} {input.cache_catalog}
     exit 0
   """
 
