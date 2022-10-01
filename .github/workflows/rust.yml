@@ -1,0 +1,82 @@
+name: Rust checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v1
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --manifest-path searcher/Cargo.toml
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [beta, stable]
+        include:
+          - build: beta
+            os: ubuntu-latest
+            rust: beta
+          - build: stable
+            os: ubuntu-latest
+            rust: stable
+    steps:
+      - uses: actions/checkout@v1
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-fail-fast --manifest-path searcher/Cargo.toml
+
+  lints:
+    name: Lints
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v1
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all --manifest-path searcher/Cargo.toml -- --check
+
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --manifest-path searcher/Cargo.toml -- -D warnings
