@@ -53,7 +53,7 @@ fn search_empty_query() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stderr(contains("No query signatures loaded, exiting."))
-        .stdout(contains("query,Run,containment").not())
+        .stdout(contains("query,Run,containment").not());
 
     Ok(())
 }
