@@ -157,6 +157,8 @@ fn search<P: AsRef<Path>>(
         error!("Unable to join internal thread: {:?}", e);
     }
 
+    let i: usize = processed_sigs.fetch_max(0, Ordering::SeqCst);
+    info!("DONE. Processed {} search sigs", i);
     Ok(())
 }
 
