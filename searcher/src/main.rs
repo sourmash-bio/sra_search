@@ -85,6 +85,11 @@ fn search<P: AsRef<Path>>(
 
     info!("Loaded {} query signatures", queries.len());
 
+    if queries.len() == 0 {
+        info!("No compatible query signatures loaded, exiting.");
+        return Ok(());
+    }
+
     info!("Loading siglist");
     let siglist_file = BufReader::new(File::open(siglist)?);
     let search_sigs: Vec<PathBuf> = siglist_file
