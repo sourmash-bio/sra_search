@@ -1,0 +1,33 @@
+name: Snakemake checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v1
+
+#      - name: Linting
+#        uses: snakemake/snakemake-github-action@v1
+#        with:
+#          directory: '.test'
+#          args: '--lint'
+
+      - name: Testing
+        uses: snakemake/snakemake-github-action@v1
+        with:
+          directory: '.test'
+          args: '--cores 1 --use-conda --configfile config.yml --conda-cleanup-pkgs cache'
+          stagein: '' # additional preliminary commands to run (can be multiline)
+
+      - name: Create container file
+        uses: snakemake/snakemake-github-action@v1
+        with:
+          snakefile: 'Snakefile'
+          task: 'containerize'
