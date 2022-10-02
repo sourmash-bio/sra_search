@@ -6,4 +6,4 @@ threshold: 0.01
 scaled: 10000
 ksize: 31
 max_downloaders: 10
-skip_download: False
+skip_download: false

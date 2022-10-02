@@ -3,20 +3,24 @@ from snakemake.utils import min_version
 ##### set minimum snakemake version #####
 min_version("6.15.5")
 
+
 configfile: "config/config.yml"
+
 
 import os
 
-#import logging
-#logging.basicConfig(level=logging.DEBUG)
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
 
 from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
 HTTP = HTTPRemoteProvider()
 
+
 rule all:
-  input:
-    f"outputs/results/{config['query_name']}.csv"
+    input:
+        f"outputs/results/{config['query_name']}.csv",
+
 
 #########################################################
 # Rules for input preparation:
@@ -25,23 +29,30 @@ rule all:
 #  - Prepare a local catalog (a file with paths to sigs) for the searcher
 #########################################################
 
+
 rule download_source:
-  output: config['sources']
-  input:
-    HTTP.remote('trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi',
-                additional_request_string='?save=efetch&db=sra&rettype=runinfo&term="METAGENOMIC"[Source] NOT amplicon[All Fields] AND cluster_public[prop]',
-                keep_local=True)
-  run:
-    shell("mv {input:q} {output}")
+    output:
+        config["sources"],
+    input:
+        HTTP.remote(
+            "trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi",
+            additional_request_string='?save=efetch&db=sra&rettype=runinfo&term="METAGENOMIC"[Source] NOT amplicon[All Fields] AND cluster_public[prop]',
+            keep_local=True,
+        ),
+    run:
+        shell("mv {input:q} {output}")
+
 
 rule catalog:
-  output:
-    catalog=f"outputs/catalogs/{os.path.basename(config['sources'])}"
-  input:
-    runinfo=config['sources']
-  conda: "envs/download.yml"
-  script:
-    "scripts/download_sigs.py"
+    output:
+        catalog=f"outputs/catalogs/{os.path.basename(config['sources'])}",
+    input:
+        runinfo=config["sources"],
+    conda:
+        "envs/download.yml"
+    script:
+        "scripts/download_sigs.py"
+
 
 #########################################################
 # searcher-related rules
@@ -49,38 +60,46 @@ rule catalog:
 #  - Execute the searcher
 #########################################################
 
+
 rule build_rust_bin:
-  output: "bin/searcher",
-  input:
-    src="searcher/src/main.rs",
-    deps="searcher/Cargo.toml",
-    deps_lock="searcher/Cargo.lock",
-  conda: "envs/rust.yml"
-  shell: "cargo install --path searcher --root ."
+    output:
+        "bin/searcher",
+    input:
+        src="searcher/src/main.rs",
+        deps="searcher/Cargo.toml",
+        deps_lock="searcher/Cargo.lock",
+    conda:
+        "envs/rust.yml"
+    shell:
+        "cargo install --path searcher --root ."
+
 
 rule search:
-  output: f"outputs/results/{config['query_name']}.csv"
-  input:
-    queries = config["query_sigs"],
-    catalog = f"outputs/catalogs/{os.path.basename(config['sources'])}",
-    bin = "bin/searcher"
-  params:
-    threshold = config.get("threshold", 0.01),
-    ksize = config.get("ksize", 31),
-    scaled = config.get("scaled", 1000),
-  threads: 32
-  shell: """
-    export RAYON_NUM_THREADS={threads}
-    set +e
-    {input.bin} \
-        --threshold {params.threshold} \
-        -k {params.ksize} \
-        --scaled {params.scaled} \
-        -o {output} \
-        {input.queries} \
-        {input.catalog}
-    exit 0
-  """
+    output:
+        f"outputs/results/{config['query_name']}.csv",
+    input:
+        queries=config["query_sigs"],
+        catalog=f"outputs/catalogs/{os.path.basename(config['sources'])}",
+        bin="bin/searcher",
+    params:
+        threshold=config.get("threshold", 0.01),
+        ksize=config.get("ksize", 31),
+        scaled=config.get("scaled", 1000),
+    threads: 32
+    shell:
+        """
+        export RAYON_NUM_THREADS={threads}
+        set +e
+        {input.bin} \
+            --threshold {params.threshold} \
+            -k {params.ksize} \
+            --scaled {params.scaled} \
+            -o {output} \
+            {input.queries} \
+            {input.catalog}
+        exit 0
+        """
+
 
 #########################################################
 # Future: searcher results post-processsing
