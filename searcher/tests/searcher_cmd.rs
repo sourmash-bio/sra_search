@@ -35,6 +35,33 @@ fn search() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+fn search_downsample() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("searcher")?;
+
+    let mut queries = NamedTempFile::new()?;
+    writeln!(queries, "tests/data/genome-s10.fa.gz.sig")?;
+
+    let mut catalog = NamedTempFile::new()?;
+    writeln!(catalog, "tests/data/genome-s10.fa.gz.sig")?;
+    writeln!(catalog, "tests/data/genome-s11.fa.gz.sig")?;
+    writeln!(catalog, "tests/data/genome-s12.fa.gz.sig")?;
+
+    cmd.args(&["--threshold", "0"])
+        .args(&["-k", "31"])
+        .args(&["--scaled", "20000"])
+        .arg(queries.path())
+        .arg(catalog.path())
+        .assert()
+        .success()
+        .stdout(contains("query,Run,containment"))
+        .stdout(contains(
+            "../genome-s10.fa.gz','tests/data/genome-s10.fa.gz.sig',1",
+        ));
+
+    Ok(())
+}
+
+#[test]
 fn search_empty_query() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("searcher")?;
 
