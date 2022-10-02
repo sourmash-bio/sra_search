@@ -7,29 +7,41 @@ on:
     branches: [main]
 
 jobs:
-  check:
+  Formatting:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+      - name: Formatting
+        uses: github/super-linter@v4
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_SNAKEMAKE_SNAKEFMT: true
 
-#      - name: Linting
-#        uses: snakemake/snakemake-github-action@v1
-#        with:
-#          directory: '.test'
-#          snakefile: 'workflow/Snakefile'
-#          args: '--lint'
+  Linting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Lint workflow
+      uses: snakemake/snakemake-github-action@v1.24.0
+      with:
+        directory: .
+        snakefile: workflow/Snakefile
+        args: "--lint"
 
-      - name: Testing
-        uses: snakemake/snakemake-github-action@v1
-        with:
-          directory: '.test'
-          snakefile: 'workflow/Snakefile'
-          args: '--cores 1 --use-conda --conda-cleanup-pkgs cache'
-          stagein: '' # additional preliminary commands to run (can be multiline)
+  Testing:
+    runs-on: ubuntu-latest
+#    needs:
+#      - Linting
+#      - Formatting
+    steps:
+    - uses: actions/checkout@v2
 
-      - name: Create container file
-        uses: snakemake/snakemake-github-action@v1
-        with:
-          snakefile: 'workflow/Snakefile'
-          task: 'containerize'
+    - name: Test
+      uses: snakemake/snakemake-github-action@v1
+      with:
+        directory: .
+        snakefile: workflow/Snakefile
+        args: "--use-conda --show-failed-logs -j 10 --conda-cleanup-pkgs cache --conda-frontend mamba"
+        stagein: "conda config --get channel_priority --json"
