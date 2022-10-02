@@ -1,0 +1,5 @@
+channels:
+  - conda-forge
+dependencies:
+  - aiofiles=0.8.0
+  - httpx=0.22.0
