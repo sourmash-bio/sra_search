@@ -105,21 +105,22 @@ rule catalog:
         results = await asyncio.gather(*tasks, return_exceptions=True)
       return results
 
-    # TODO: deal with errors
-    results = asyncio.run(collect())
-    print(f"step 3: {len(results)}")
-    for result in results:
-      if result is None:
-        # Couldn't find a sig in wort, just skip
-        pass
-      elif isinstance(result, BaseException):
-        # catch-all exception for now, need to figure out what to do
-        # probably retry?
-        print(f"exception: {result}")
-        raise result
-      elif isinstance(result, str):
-        # valid path!
-        sig_paths.add(sig_path)
+    if not config.get('skip_download', True):
+      # TODO: deal with errors
+      results = asyncio.run(collect())
+      print(f"step 3: {len(results)}")
+      for result in results:
+        if result is None:
+          # Couldn't find a sig in wort, just skip
+          pass
+        elif isinstance(result, BaseException):
+          # catch-all exception for now, need to figure out what to do
+          # probably retry?
+          print(f"exception: {result}")
+          raise result
+        elif isinstance(result, str):
+          # valid path!
+          sig_paths.add(sig_path)
 
     ##################################
     # step 4: prepare catalog
@@ -137,6 +138,10 @@ rule catalog:
 
 rule build_rust_bin:
   output: "bin/searcher",
+  input:
+    src="searcher/src/main.rs",
+    deps="searcher/Cargo.toml",
+    deps_lock="searcher/Cargo.lock",
   conda: "env/rust.yml"
   shell: "cargo install --path searcher --root ."
 
@@ -148,12 +153,19 @@ rule search:
     bin = "bin/searcher"
   params:
     threshold = config.get("threshold", 0.01),
-    ksize = config.get("ksize", 31)
+    ksize = config.get("ksize", 31),
+    scaled = config.get("scaled", 1000),
   threads: 32
   shell: """
     export RAYON_NUM_THREADS={threads}
     set +e
-    {input.bin} --threshold {params.threshold} -k {params.ksize} -o {output} {input.queries} {input.catalog}
+    {input.bin} \
+        --threshold {params.threshold} \
+        -k {params.ksize} \
+        --scaled {params.scaled} \
+        -o {output} \
+        {input.queries} \
+        {input.catalog}
     exit 0
   """
 
