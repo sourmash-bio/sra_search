@@ -4,6 +4,6 @@ sources: "inputs/metagenomes_example.csv"
 wort_sigs: inputs/sigs
 threshold: 0.01
 scaled: 10000
-ksize: 31
+ksize: 21
 max_downloaders: 10
 skip_download: false

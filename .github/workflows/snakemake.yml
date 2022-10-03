@@ -45,3 +45,13 @@ jobs:
         snakefile: workflow/Snakefile
         args: "--use-conda --show-failed-logs -j 10 --conda-cleanup-pkgs cache --conda-frontend mamba"
         stagein: "conda config --get channel_priority --json"
+
+    - name: check output
+      run: |
+        test $(wc -l  outputs/results/test.csv | cut -d' ' -f 1) -eq 6
+        test $(head -1 outputs/results/test.csv) = 'query,Run,containment'
+        test $(grep -c SRR5506584 outputs/results/test.csv) -eq 1
+        test $(grep -c SRR5506691 outputs/results/test.csv) -eq 1
+        test $(grep -c SRR5506585 outputs/results/test.csv) -eq 1
+        test $(grep -c SRR5506558 outputs/results/test.csv) -eq 1
+        test $(grep -c SRR5506583 outputs/results/test.csv) -eq 1
