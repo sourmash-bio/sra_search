@@ -18,7 +18,7 @@ with open(snakemake.input.runinfo) as fp:
     data = csv.DictReader(fp, delimiter=",")
     for dataset in data:
         sraids.add(dataset["Run"])
-print(f"step 1: {len(sraids)}")
+print(f"step 1 (runinfo): {len(sraids)}")
 
 ##################################
 # step 2: find what sigs are already downloaded
@@ -32,7 +32,7 @@ for sraid in sraids:
     else:
         sraids_to_download.add(sraid)
 del sraids
-print(f"step 2: {len(sraids_to_download)}")
+print(f"step 2 (to download): {len(sraids_to_download)}")
 
 ##################################
 # step 3: download sigs from wort
@@ -75,7 +75,7 @@ async def collect():
 if not snakemake.config.get("skip_download", True):
     # TODO: deal with errors
     results = asyncio.run(collect())
-    print(f"step 3: {len(results)}")
+    print(f"step 3 (downloading): {len(results)}")
     for result in results:
         if result is None:
             # Couldn't find a sig in wort, just skip
@@ -92,7 +92,13 @@ if not snakemake.config.get("skip_download", True):
 ##################################
 # step 4: prepare catalog
 ##################################
+
+print(f"step 4 (downloaded): {len(sig_paths)}")
+n = 0
 with open(snakemake.output[0], "w") as fout:
     for sig_path in sig_paths:
         if sig_path.exists():
             fout.write(f"{sig_path}\n")
+            n += 1
+
+print(f"step 5 (catalog): {n}")
