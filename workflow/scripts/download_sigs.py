@@ -85,9 +85,11 @@ if not snakemake.config.get("skip_download", True):
             # probably retry?
             print(f"exception: {result}")
             raise result
-        elif isinstance(result, str):
+        elif isinstance(result, Path):
             # valid path!
-            sig_paths.add(sig_path)
+            sig_paths.add(result)
+        else:
+            print(f"debug: {type(result)} {result}")
 
 ##################################
 # step 4: prepare catalog
