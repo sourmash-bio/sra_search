@@ -7,10 +7,7 @@ min_version("6.15.5")
 configfile: "config/config.yml"
 
 
-import os
-
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
+from pathlib import Path
 
 from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 
@@ -39,17 +36,23 @@ rule download_source:
             additional_request_string='?save=efetch&db=sra&rettype=runinfo&term="METAGENOMIC"[Source] NOT amplicon[All Fields] AND cluster_public[prop]',
             keep_local=True,
         ),
-    run:
-        shell("mv {input:q} {output}")
+    conda:
+        "envs/base.yml"
+    log:
+        "logs/download_source/log",
+    shell:
+        "mv {input:q} {output}"
 
 
 rule catalog:
     output:
-        catalog=f"outputs/catalogs/{os.path.basename(config['sources'])}",
+        catalog=f"outputs/catalogs/{Path(config['sources']).name}",
     input:
         runinfo=config["sources"],
     conda:
         "envs/download.yml"
+    log:
+        "logs/catalog/log",
     script:
         "scripts/download_sigs.py"
 
@@ -70,6 +73,8 @@ rule build_rust_bin:
         deps_lock="searcher/Cargo.lock",
     conda:
         "envs/rust.yml"
+    log:
+        "logs/build_searcher/log",
     shell:
         "cargo install --path searcher --root ."
 
@@ -79,13 +84,17 @@ rule search:
         f"outputs/results/{config['query_name']}.csv",
     input:
         queries=config["query_sigs"],
-        catalog=f"outputs/catalogs/{os.path.basename(config['sources'])}",
+        catalog=f"outputs/catalogs/{Path(config['sources']).name}",
         bin="bin/searcher",
     params:
         threshold=config.get("threshold", 0.01),
         ksize=config.get("ksize", 31),
         scaled=config.get("scaled", 1000),
     threads: 32
+    conda:
+        "envs/base.yml"
+    log:
+        "logs/searcher/log",
     shell:
         """
         export RAYON_NUM_THREADS={threads}
