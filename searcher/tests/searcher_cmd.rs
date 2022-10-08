@@ -1,5 +1,4 @@
-use std::fs;
-use std::io::{Read, Write};
+use std::io::Write;
 use std::process::Command;
 
 use assert_cmd::prelude::*;
