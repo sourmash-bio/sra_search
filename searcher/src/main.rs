@@ -112,10 +112,16 @@ fn search<P: AsRef<Path>>(
 
     let queries: Vec<(String, KmerMinHash)> = querylist_file
         .lines()
-        .map(|line| {
-            let mut path = PathBuf::new();
-            path.push(line.unwrap());
-            path
+        .filter_map(|line| {
+            let line = line.unwrap();
+            if !line.is_empty() {
+                // skip empty lines
+                let mut path = PathBuf::new();
+                path.push(line);
+                Some(path)
+            } else {
+                None
+            }
         })
         .filter_map(|query| {
             let query_sig = Signature::from_path(query).unwrap();
@@ -141,10 +147,15 @@ fn search<P: AsRef<Path>>(
     let siglist_file = BufReader::new(File::open(siglist)?);
     let search_sigs: Vec<PathBuf> = siglist_file
         .lines()
-        .map(|line| {
-            let mut path = PathBuf::new();
-            path.push(line.unwrap());
-            path
+        .filter_map(|line| {
+            let line = line.unwrap();
+            if !line.is_empty() {
+                let mut path = PathBuf::new();
+                path.push(line);
+                Some(path)
+            } else {
+                None
+            }
         })
         .collect();
     info!("Loaded {} sig paths in siglist", search_sigs.len());
