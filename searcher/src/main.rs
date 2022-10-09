@@ -114,7 +114,7 @@ fn search<P: AsRef<Path>>(
         .lines()
         .filter_map(|line| {
             let line = line.unwrap();
-            if line.len() > 0 {
+            if !line.is_empty() {
                 // skip empty lines
                 let mut path = PathBuf::new();
                 path.push(line);
@@ -149,7 +149,7 @@ fn search<P: AsRef<Path>>(
         .lines()
         .filter_map(|line| {
             let line = line.unwrap();
-            if line.len() > 0 {
+            if !line.is_empty() {
                 let mut path = PathBuf::new();
                 path.push(line);
                 Some(path)
