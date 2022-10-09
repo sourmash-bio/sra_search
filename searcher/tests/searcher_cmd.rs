@@ -84,7 +84,6 @@ fn search_empty_query() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-
 #[test]
 fn search_catalog_empty_line() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("searcher")?;
@@ -136,4 +135,3 @@ fn search_queries_empty_line() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
