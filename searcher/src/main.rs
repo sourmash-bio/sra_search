@@ -129,7 +129,7 @@ fn search<P: AsRef<Path>>(
             let mut query = None;
             for sig in &query_sig {
                 if let Some(mh) = prepare_query(sig, &template) {
-                    query = Some((sig.name(), mh.clone()));
+                    query = Some((sig.name(), mh));
                     break;
                 }
             }
