@@ -130,6 +130,7 @@ fn search<P: AsRef<Path>>(
             for sig in &query_sig {
                 if let Some(mh) = prepare_query(sig, &template) {
                     query = Some((sig.name(), mh.clone()));
+                    break;
                 }
             }
             query
