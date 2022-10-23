@@ -1,5 +1,5 @@
 channels:
   - conda-forge
-  - defaults
 dependencies:
-  - rust=1.44.1
+  - aiofiles=0.8.0
+  - httpx=0.22.0
