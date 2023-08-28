@@ -8,3 +8,12 @@ conda env create --force --file environment.yml
 
 conda activate sra_search
 ```
+
+## License
+
+This software is under the AGPL license. Please see [LICENSE.txt](LICENSE.txt).
+
+## Authors
+
+Luiz Irber
+C. Titus Brown
